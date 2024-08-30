@@ -9,7 +9,6 @@ void printbin(int8 *data, int length) {
     printf("\n");
 }
 
-
 #define F fflush(stdout);  // Forces the output to be displayed immediately
 
 int main(void);
