@@ -19,9 +19,8 @@ struct s_arcfour {
     int8 s[256];
 
 };
-
 typedef struct s_arcfour Arcfour;
 
 Arcfour *rc4init(int8*, int16);
-int8 rcbyte(void);
+int8 rcbyte(Arcfour*);
 int8 *rc4encrypt(int8*, int16);

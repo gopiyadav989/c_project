@@ -1,10 +1,14 @@
+// example.c
 #include "arcfour.h"
 #include <stdint.h>
 #include <stdio.h>
 
-void printbin(int8 *data, int length) {
-    for (int i = 0; i < length; i++) {
-        printf("%02X", data[i]);  // Print each byte as a 2-digit hexadecimal number
+void printbin(int8 *input,const int16 size) {
+    for (int i = 0; i < size; i++) {
+        if (i%2 == 0) {
+            printf(" ");
+        }
+        printf("%.02X", input[i]);  // Print each byte as a 2-digit hexadecimal number
     }
     printf("\n");
 }
@@ -18,6 +22,8 @@ int main(){
     Arcfour *rc4;
     int16 skey, stext;
     char *key, *from, *to, *encrypted, *decrypted;
+    // not directly assigned int8 coz - strlen shows error
+    // typecast it later
 
     key=from=encrypted=decrypted=0;
     from=key;
@@ -28,12 +34,12 @@ int main(){
     stext = strlen(from);
 
     printf("Initialising encryptionn....\n"); F;
-    // rc4 = rc4init(key,skey);
+    rc4 = rc4init((int8*)key,skey);
     printf("done\n");
 
     printf("'%s'\n ->", from );
     // encrypted = rc4encrypt(from,stext);
-    printbin((int8 *)key, skey);
+    printbin(rc4->s, skey);
 
 
 }
