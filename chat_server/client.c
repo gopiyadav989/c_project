@@ -1,3 +1,4 @@
+// client.c
 /*
 filename server_ipaddress portno
 argv[0] - filename
@@ -13,6 +14,8 @@ argv[2] - portno
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
+
+#include "arcfour.h"
 
 #define MAX_BUFFER_SIZE 1024
 

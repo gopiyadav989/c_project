@@ -3,7 +3,6 @@
 
 Arcfour *rc4init(int8 *key, int16 size){
 
-
     // for i from 0 to 255
     //     S[i] := i
     // endfor
@@ -25,7 +24,7 @@ Arcfour *rc4init(int8 *key, int16 size){
     for(x = 0; x<=255; x++){
         p->s[x] = 0;
     }
-    p->i = p->j = p->k = 0;
+    p->i = p->j = 0;
 
     // to do loop with i, wikipedia docs
     for(p->i = 0; p->i <= 255; p->i++){
@@ -66,16 +65,25 @@ int8 rc4byte(Arcfour *p){
     p->s[p->j] = temp1;
 
     temp1 = (p->s[p->i] + p->s[p->j])%256;
-    p->k = p->s[temp1];
+    return p->s[temp1];
 
-    return p->k;
+    // i := 0
+    // j := 0
+    // while GeneratingOutput:
+    //     i := (i + 1) mod 256
+    //     j := (j + S[i]) mod 256
+    //     swap values of S[i] and S[j]
+    //     t := (S[i] + S[j]) mod 256
+    //     K := S[t]
+    //     output K
+    // endwhile
 
 }
 
 int8 *rc4encrypt(Arcfour *p, int8*cleartext, int16 size){
     int8 *ciphertext;
     int16 x;
-    ciphertext = (int8 *)malloc(size+1);
+    ciphertext = (int8 *)malloc(size);
     if (!ciphertext){
         perror("");
         exit(EXIT_FAILURE);
