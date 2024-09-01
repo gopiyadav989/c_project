@@ -16,10 +16,13 @@ Arcfour *rc4init(int8 *key, int16 size){
     Arcfour *p;
     p = (Arcfour *)malloc(sizeof(struct s_arcfour));
 
-    if (p == NULL) perror("");
+    if (p == NULL){
+        perror("");
+        exit(EXIT_FAILURE);
+    }
 
     int8 x;   // i can use int also, only to look good check code na fate bas
-    for(x = 0; x<256; x++){
+    for(x = 0; x<=255; x++){
         p->s[x] = 0;
     }
     p->i = p->j = p->k = 0;
