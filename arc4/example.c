@@ -21,12 +21,10 @@ int main(){
 
     Arcfour *rc4;
     int16 skey, stext;
-    char *key, *from, *to, *encrypted, *decrypted;
+    char *key, *from, *to;
+    int8 *encrypted,*decrypted;
     // not directly assigned int8 coz - strlen shows error
     // typecast it later
-
-    key=from=encrypted=decrypted=0;
-    from=key;
 
     key = "apples";
     skey = strlen(key);
@@ -38,8 +36,8 @@ int main(){
     printf("done\n");
 
     printf("'%s'\n ->", from );
-    // encrypted = rc4encrypt(from,stext);
-    printbin(rc4->s, skey);
+    encrypted = rc4encrypt(rc4,(int8 *)from,stext);
+    printbin(encrypted, skey);
 
 
 }

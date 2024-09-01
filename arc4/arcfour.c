@@ -21,7 +21,7 @@ Arcfour *rc4init(int8 *key, int16 size){
         exit(EXIT_FAILURE);
     }
 
-    int8 x;   // i can use int also, only to look good check code na fate bas
+    int16 x;
     for(x = 0; x<=255; x++){
         p->s[x] = 0;
     }
@@ -49,5 +49,42 @@ Arcfour *rc4init(int8 *key, int16 size){
     p->j = 0;
 
     return p;
+
+}
+
+
+int8 rc4byte(Arcfour *p){
+
+    int16 temp1, temp2;
+
+    p->i = (p->i +1)%256;
+    p->j = (p->j + p->s[p->i]) %256;
+
+    temp1 = p->s[p->i];
+    temp2 = p->s[p->j];
+    p->s[p->i] = temp2;
+    p->s[p->j] = temp1;
+
+    temp1 = (p->s[p->i] + p->s[p->j])%256;
+    p->k = p->s[temp1];
+
+    return p->k;
+
+}
+
+int8 *rc4encrypt(Arcfour *p, int8*cleartext, int16 size){
+    int8 *ciphertext;
+    int16 x;
+    ciphertext = (int8 *)malloc(size+1);
+    if (!ciphertext){
+        perror("");
+        exit(EXIT_FAILURE);
+    }
+
+    for(x=0; x<size; x++){
+        ciphertext[x] = cleartext[x] ^ rc4byte(p);
+    }
+
+    return ciphertext;
 
 }
