@@ -3,9 +3,8 @@
 filename server_ipaddress portno
 argv[0] - filename
 argv[1] - server_ipaddress
-argv[2] - portno
 */
-
+#include <stdio.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,10 +13,11 @@ argv[2] - portno
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
-
 #include "arcfour.h"
 
-#define MAX_BUFFER_SIZE 1024
+#define F fflush(stdout);
+#define BUFFER_SIZE 1024
+#define PORT 8080
 
 void error(const char*msg){
     perror(msg);
@@ -26,23 +26,23 @@ void error(const char*msg){
 
 int main(int argc, char *argv[]){
     int sockfd, portno, n;
+    char *buffer;
+    int buffer_size = BUFFER_SIZE;
+
     struct sockaddr_in serv_addr;  // from <netinet/in.h>
-    struct hostent *server;
+    struct hostent *server; //form <netdb.h>
 
-    char buffer[MAX_BUFFER_SIZE];
+    buffer = (char *)malloc(buffer_size * sizeof(char));
+    if (buffer == NULL) {
+        error("Memory allocation failed");
+    }
 
-    if(argc != 3){
+    if(argc != 2){
         fprintf(stderr, "usage %s hostname port\n", argv[0]);
         exit(1);
     }
 
-    // Validate port number
-    portno = atoi(argv[2]);
-    if (portno <= 0) {
-        fprintf(stderr, "Invalid port number: %d\n", portno);
-        exit(EXIT_FAILURE);
-    }
-
+    portno = PORT;
 
     // Create socket
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -68,30 +68,49 @@ int main(int argc, char *argv[]){
         error("Connection Failed");
     }
 
+    // Initialize encryption
+    char* key; int16 keyLen;
+    key = "tomatoes";
+    keyLen = strlen(key);
+    Arcfour *rc4 = rc4init((int8*) key, keyLen);
+    int16 cBlen;
+    int8 *decrypted;
+    int8 *encrypted;
+
     // Main communication loop
     while(1){
-        bzero(buffer, MAX_BUFFER_SIZE);
+        bzero(buffer, buffer_size);
         printf("Enter message: ");
-        if (fgets(buffer, 255, stdin) == NULL) {
+        if (fgets(buffer, buffer_size - 1, stdin) == NULL) {
             error("Error reading from stdin");
         }
-        n = write(sockfd, buffer, strlen(buffer) +1);  // +1,Includes null terminator
+
+        // Encrypt before sending
+        cBlen = strlen(buffer);
+        encrypted = rc4encrypt(rc4, (int8*) buffer, cBlen);
+
+        n = write(sockfd, encrypted, buffer_size-1);
         if(n<0){
             error("Error on writing");
         }
-        bzero(buffer, MAX_BUFFER_SIZE);
-        n = read(sockfd, buffer, MAX_BUFFER_SIZE - 1);
+        bzero(buffer, buffer_size);
+        n = read(sockfd, buffer, buffer_size-1);
         if(n < 0){
             error("Error on reading");
         }
-        printf("Server: %s", buffer);
 
-        int i = strncmp("Bye", buffer,3);
+        cBlen = strlen(buffer);
+        decrypted = rc4decrypt(rc4, (int8*) buffer, cBlen);
+        printf("Server: %s", decrypted);
+
+        int i = strncmp("bye", (char*)decrypted,3);
         if(i == 0){
             break;
         }
     }
 
+    rc4uninit(rc4);
+    free(buffer);
     close(sockfd);
 
     return 0;
