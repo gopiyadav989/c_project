@@ -77,6 +77,13 @@ int main(int argc, char *argv[]){
     int8 *decrypted;
     int8 *encrypted;
 
+    struct timeval timeout;
+    timeout.tv_sec = 30;  // 30 seconds
+    timeout.tv_usec = 0;  // 0 microseconds
+    if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout)) < 0) {
+        error("setsockopt failed");
+    }
+
     // Main communication loop
     while(1){
         bzero(buffer, buffer_size);
@@ -95,8 +102,13 @@ int main(int argc, char *argv[]){
         }
         bzero(buffer, buffer_size);
         n = read(sockfd, buffer, buffer_size-1);
-        if(n < 0){
-            error("Error on reading");
+        if (n < 0) {
+            if (errno == EWOULDBLOCK || errno == EAGAIN) {
+                printf("Timeout: No response from client for 10 seconds.\n");
+                break;
+            } else {
+                error("Error reading from socket");
+            }
         }
 
         cBlen = strlen(buffer);

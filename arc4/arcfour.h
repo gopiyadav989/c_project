@@ -7,7 +7,7 @@
 #include <assert.h>
 #include <errno.h>
 
-#define rc4decrypt(x,y,z)  rc4encrypt(x,y,z)  // #define rc4decrypt(x,y) rc4encrypt(x,y) is used to create a macro that substitutes every occurrence of rc4decrypt(x, y) with rc4encrypt(x, y) during the preprocessing phase of compilation.
+#define rc4decrypt(x,y,z)  rc4encrypt(x,y,z)
 #define rc4uninit(x)        free(x)
 
 typedef unsigned char int8;

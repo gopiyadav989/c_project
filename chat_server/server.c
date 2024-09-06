@@ -7,6 +7,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include "arcfour.h"
+#include <errno.h>
 
 #define F fflush(stdout);
 #define BUFFER_SIZE 1024
@@ -68,11 +69,27 @@ int main(int argc, char* argv[]){
     int8 *decrypted;
     int8 *encrypted;
 
+    // Set up the socket with a timeout for receiving data
+    struct timeval timeout;
+    timeout.tv_sec = 30;  // 30 seconds
+    timeout.tv_usec = 0;  // 0 microseconds
+
+    // Set up the socket with a timeout for receiving data
+    if (setsockopt(newsockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout)) < 0) {
+        error("setsockopt failed");
+    }
+
     while(1){
         bzero(buffer, buffer_size);
+
         n = read(newsockfd, buffer, buffer_size-1); //corresponding have write function of this
         if (n < 0) {
-            error("Error reading from socket");
+            if (errno == EWOULDBLOCK || errno == EAGAIN) {
+                printf("Timeout: No response from client for 10 seconds.\n");
+                break;
+            } else {
+                error("Error reading from socket");
+            }
         }
 
         // Decrypt the received message
@@ -88,7 +105,8 @@ int main(int argc, char* argv[]){
         cBlen = strlen(buffer);
         encrypted = rc4encrypt(rc4, (int8*) buffer, cBlen);
         n = write(newsockfd, encrypted, buffer_size-1);
-        if (n < 0) {
+
+        if(n<0){
             error("Error writing to socket");
         }
 
