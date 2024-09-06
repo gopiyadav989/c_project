@@ -84,6 +84,11 @@ int main(int argc, char *argv[]){
         error("setsockopt failed");
     }
 
+    FILE *chat_log = fopen("client_chat_log.txt", "a");
+    if (chat_log == NULL) {
+        error("Error opening file");
+    }
+
     // Main communication loop
     while(1){
         bzero(buffer, buffer_size);
@@ -100,6 +105,10 @@ int main(int argc, char *argv[]){
         if(n<0){
             error("Error on writing");
         }
+
+        //Log the sent message into file
+        fprintf(chat_log, "Client (sent): %s\n", buffer);
+
         bzero(buffer, buffer_size);
         n = read(sockfd, buffer, buffer_size-1);
         if (n < 0) {
@@ -115,6 +124,9 @@ int main(int argc, char *argv[]){
         decrypted = rc4decrypt(rc4, (int8*) buffer, cBlen);
         printf("Server: %s", decrypted);
 
+        //Log the received message
+        fprintf(chat_log, "Server(received): %s\n", decrypted);
+
         int i = strncmp("bye", (char*)decrypted,3);
         if(i == 0){
             break;
@@ -122,6 +134,7 @@ int main(int argc, char *argv[]){
     }
 
     rc4uninit(rc4);
+    fclose(chat_log);
     free(buffer);
     close(sockfd);
 

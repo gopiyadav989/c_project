@@ -79,6 +79,11 @@ int main(int argc, char* argv[]){
         error("setsockopt failed");
     }
 
+    FILE *chat_log = fopen("server_chat_log.txt", "a");
+    if(chat_log == NULL){
+        error("error in opening the file");
+    }
+
     while(1){
         bzero(buffer, buffer_size);
 
@@ -96,6 +101,7 @@ int main(int argc, char* argv[]){
         cBlen = strlen(buffer);
         decrypted = rc4decrypt(rc4, (int8*) buffer, cBlen);
         printf("Clint: %s", decrypted); F;
+        fprintf(chat_log, "Client (received): %s\n", decrypted);
 
         bzero(buffer, buffer_size);
         printf("Enter message: "); F;
@@ -110,6 +116,8 @@ int main(int argc, char* argv[]){
             error("Error writing to socket");
         }
 
+        fprintf(chat_log, "Server (sent): %s\n", buffer);
+
         int i = strncmp("bye", buffer,3);
         if(i == 0){
             break;
@@ -118,6 +126,7 @@ int main(int argc, char* argv[]){
 
     rc4uninit(rc4);
     free(buffer);
+    fclose(chat_log);
     close(newsockfd);
     close(sockfd);
     return 0;
